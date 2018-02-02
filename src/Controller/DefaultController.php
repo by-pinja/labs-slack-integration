@@ -36,20 +36,22 @@ class DefaultController
      */
     public function indexAction(Request $request, Client $slackClient): JsonResponse
     {
-        $message = $slackClient->createMessage();
+        $text = $request->get('message');
+        $output = true;
 
-        $message
-            ->to('#' . $request->get('channel', 'labs'))
-            ->from($request->get('nick', 'mörkö'))
-            ->withIcon($request->get('icon', ':ghost:'))
-            ->setText($request->get('message', 'pöööö!'));
+        if ($text !== null) {
+            $message = $slackClient->createMessage();
 
-        try {
-            $slackClient->sendMessage($message);
-
-            $output = true;
-        } catch (\Exception $exception) {
-            $output = false;
+            $message
+                ->to('#' . $request->get('channel', 'labs'))
+                ->from($request->get('nick', 'mörkö'))
+                ->withIcon($request->get('icon', ':ghost:'))
+                ->setText($text);
+            try {
+                $slackClient->sendMessage($message);
+            } catch (\Exception $exception) {
+                $output = false;
+            }
         }
 
         return new JsonResponse($output, $output ? 200 : 500);
