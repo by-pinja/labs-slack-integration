@@ -1,6 +1,6 @@
 @Library("PTCSLibrary") _
 
-podTemplate(label: 'labs-slack-integration-symfony',
+podTemplate(label: 'labs-slack-integration-symfony2',
   containers: [
     containerTemplate(
       name: 'php',
@@ -25,7 +25,7 @@ podTemplate(label: 'labs-slack-integration-symfony',
   def notifySlackChannel = "#jenkins"
 
   try {
-    node('labs-slack-integration-symfony') {
+    node('labs-slack-integration-symfony2') {
       stage('Checkout') {
         checkout_with_tags()
       }
