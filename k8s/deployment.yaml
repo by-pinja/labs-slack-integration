@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: labs-slack-integration
+    role: backend
+    version: master
+  name: labs-slack-integration-backend-master
+  namespace: labs-slack-integration-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: labs-slack-integration
+      role: backend
+      version: master
+  template:
+    metadata:
+      labels:
+        app: labs-slack-integration
+        role: backend
+        version: master
+      name: labs-slack-integration-backend-master
+    spec:
+      containers:
+      - image: eu.gcr.io/ptcs-docker-registry/labs-slack-integration:latest-master
+        imagePullPolicy: Always
+        name: labs-slack-integration-backend-master
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: labs-slack-integration
+    role: backend
+    version: master
+  name: labs-slack-integration-backend-master
+  namespace: labs-slack-integration-master
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: labs-slack-integration
+    role: backend
+    version: master

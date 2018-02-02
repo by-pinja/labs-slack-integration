@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: labs-slack-integration-master-ingress
+  namespace: labs-slack-integration-master
+  annotations:
+    kubernetes.io/ingress.class: traefik
+  labels:
+    traefik-type: public
+spec:
+  rules:
+    - host: labs-slack-integration-master.protacon.cloud
+      http:
+        paths:
+          - backend:
+              serviceName: labs-slack-integration-backend-master
+              servicePort: 80
+    - host: labs-slack-integration-master.protacon.cloud
