@@ -7,7 +7,9 @@ declare(strict_types = 1);
  */
 namespace App\Controller;
 
+use App\Helper\LoggerAwareTrait;
 use App\Model\SlackIncomingWebHook;
+use App\Service\IncomingMessageHandler;
 use Nexy\Slack\Client;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -25,6 +27,9 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class DefaultController
 {
+    // Traits
+    use LoggerAwareTrait;
+
     /**
      * @Route("")
      * @Method("GET")
@@ -63,16 +68,21 @@ class DefaultController
      * @Route("")
      * @Method("POST")
      *
-     * @param Request             $request
-     * @param SerializerInterface $serializer
+     * @param Request                $request
+     * @param SerializerInterface    $serializer
+     * @param IncomingMessageHandler $incomingMessageHandler
      *
      * @return JsonResponse
      */
-    public function incomingAction(Request $request, SerializerInterface $serializer): JsonResponse
-    {
+    public function incomingAction(
+        Request $request,
+        SerializerInterface $serializer,
+        IncomingMessageHandler $incomingMessageHandler
+    ): JsonResponse {
+        /** @var SlackIncomingWebHook $payload */
         $payload = $serializer->deserialize(\json_encode($request->request->all()), SlackIncomingWebHook::class, 'json');
 
-        // TODO handle payloadl
+        $incomingMessageHandler->process($payload);
 
         return new JsonResponse(true);
     }

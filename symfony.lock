@@ -2,6 +2,9 @@
     "clue/stream-filter": {
         "version": "v1.4.0"
     },
+    "cmfcmf/openweathermap-php-api": {
+        "version": "v2.2.3"
+    },
     "codedungeon/phpunit-result-printer": {
         "version": "0.5.4"
     },
@@ -151,6 +154,9 @@
             "version": "4.0",
             "ref": "e65a105bf4cd5b1b79012ba029954927f05922e8"
         }
+    },
+    "squizlabs/php_codesniffer": {
+        "version": "3.2.2"
     },
     "symfony/apache-pack": {
         "version": "1.0",

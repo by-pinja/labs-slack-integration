@@ -289,4 +289,12 @@ class SlackIncomingWebHook
 
         return $this;
     }
+
+    /**
+     * @return string
+     */
+    public function getUserText(): string
+    {
+        return \trim(\str_replace($this->getTriggerWord(), '', $this->getText()));
+    }
 }
