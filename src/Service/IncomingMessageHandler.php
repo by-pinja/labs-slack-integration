@@ -47,11 +47,21 @@ class IncomingMessageHandler
     }
 
     /**
+     * Method to process all incoming Slack messages. This one will process all registered Slack message handlers and
+     * check which one of those supports current message. If message is supported 'process' method of that class is
+     * called - otherwise just skip to next handler.
+     *
      * @param SlackIncomingWebHook $slackIncomingWebHook
      */
     public function process(SlackIncomingWebHook $slackIncomingWebHook): void
     {
-        $iterator = function (HandlerInterface $handler) use ($slackIncomingWebHook) {
+        /**
+         * Lambda function to check if incoming message from slack is supported by current handler or not. And if it is
+         * supported current handler will process that message right away.
+         *
+         * @param HandlerInterface $handler
+         */
+        $iterator = function (HandlerInterface $handler) use ($slackIncomingWebHook): void {
             if ($handler->supports($slackIncomingWebHook)) {
                 $handler->process($slackIncomingWebHook);
             }
