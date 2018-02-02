@@ -7,11 +7,13 @@ declare(strict_types = 1);
  */
 namespace App\Controller;
 
+use App\Model\SlackIncomingWebHook;
 use Nexy\Slack\Client;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Class DefaultController
@@ -34,7 +36,7 @@ class DefaultController
      *
      * @throws \Http\Client\Exception
      */
-    public function indexAction(Request $request, Client $slackClient): JsonResponse
+    public function sendAction(Request $request, Client $slackClient): JsonResponse
     {
         $text = $request->get('message');
         $output = true;
@@ -55,5 +57,23 @@ class DefaultController
         }
 
         return new JsonResponse($output, $output ? 200 : 500);
+    }
+
+    /**
+     * @Route("")
+     * @Method("POST")
+     *
+     * @param Request             $request
+     * @param SerializerInterface $serializer
+     *
+     * @return JsonResponse
+     */
+    public function incomingAction(Request $request, SerializerInterface $serializer): JsonResponse
+    {
+        $payload = $serializer->deserialize(\json_encode($request->request->all()), SlackIncomingWebHook::class, 'json');
+
+        // TODO handle payloadl
+
+        return new JsonResponse(true);
     }
 }
