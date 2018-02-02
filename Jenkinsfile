@@ -21,7 +21,7 @@ podTemplate(label: 'labs-slack-integration-symfony',
 ) {
   def project = "labs-slack-integration"
   def branch = (env.BRANCH_NAME)
-  def namespace = "labs-slack-integration"
+  def namespace = "labs-slack-integration-master"
   def notifySlackChannel = "#jenkins"
 
   try {
@@ -59,7 +59,7 @@ podTemplate(label: 'labs-slack-integration-symfony',
 
           toK8sTestEnv() {
             sh """
-              kubectl set image deployment/labs-slack-deployment $project=$published.image:$published.tag --namespace=$namespace
+              kubectl set image deployment/labs-slack-integration-backend-master $project=$published.image:$published.tag --namespace=$namespace
             """
           }
         }
