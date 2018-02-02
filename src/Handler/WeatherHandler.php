@@ -20,6 +20,7 @@ use Nexy\Slack\Client as SlackClient;
  */
 class WeatherHandler implements HandlerInterface
 {
+    // Traits
     use LoggerAwareTrait;
 
     /**
@@ -91,20 +92,21 @@ class WeatherHandler implements HandlerInterface
 
         $data = \json_decode($response->getBody()->getContents());
 
-        $this->logger->info($response->getBody()->getContents());
+        $iterator = function (\stdClass $weather): string {
+            return $weather->description;
+        };
 
         $text = \sprintf(
             '%s°C %s, tuulta %sm/s',
             $data->main->temp,
-            $data->weather->description,
+            \implode(', ', \array_map($iterator, $data->weather)),
             $data->wind->speed
         );
 
-        $this->logger->info($text);
-
         $message = $this->slackClient->createMessage();
         $message->to($slackIncomingWebHook->getChannelName());
-        $message->setText($text);
+        $message->from($slackIncomingWebHook->getUserName());
+        $message->setText('@' . $slackIncomingWebHook->getUserName() . ' ' . $text);
 
         $this->slackClient->sendMessage($message);
     }
