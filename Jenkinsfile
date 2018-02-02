@@ -4,7 +4,7 @@ podTemplate(label: 'labs-slack-integration-symfony2',
   containers: [
     containerTemplate(
       name: 'php',
-      image: 'php:7.1.14',
+      image: 'php:7.1',
       ttyEnabled: true,
       command: '/bin/sh -c',
       args: 'cat'
