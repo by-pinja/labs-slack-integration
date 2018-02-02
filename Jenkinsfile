@@ -59,7 +59,7 @@ podTemplate(label: 'labs-slack-integration-symfony2',
 
           toK8sTestEnv() {
             sh """
-              kubectl set image deployment/labs-slack-integration-backend-master $project=$published.image:$published.tag --namespace=$namespace
+              kubectl set image deployment/labs-slack-integration $project=$published.image:$published.tag --namespace=$namespace
             """
           }
         }

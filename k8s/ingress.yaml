@@ -13,6 +13,6 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: labs-slack-integration-backend-master
+              serviceName: labs-slack-integration
               servicePort: 80
     - host: labs-slack-integration-master.protacon.cloud
