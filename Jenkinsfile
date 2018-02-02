@@ -25,7 +25,7 @@ podTemplate(label: 'labs-slack-integration-symfony',
   def notifySlackChannel = "#jenkins"
 
   try {
-    node('type-symfony') {
+    node('labs-slack-integration-symfony') {
       stage('Checkout') {
         checkout_with_tags()
       }
