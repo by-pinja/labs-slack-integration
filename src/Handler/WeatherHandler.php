@@ -105,9 +105,39 @@ class WeatherHandler implements HandlerInterface
 
         $message = $this->slackClient->createMessage();
         $message->to($slackIncomingWebHook->getChannelName());
-        $message->from($slackIncomingWebHook->getUserName());
-        $message->setText('@' . $slackIncomingWebHook->getUserName() . ' ' . $text);
+        $message->from('Weather information');
+        $message->setIcon($this->determineIcon($text));
+        $message->setText($text);
 
         $this->slackClient->sendMessage($message);
+    }
+
+    /**
+     * @param string $text
+     *
+     * @return string
+     */
+    private function determineIcon(string $text): string
+    {
+        $icons = [
+            ':sunny:'              => ['pouta', 'aurin', 'selkeä'],
+            ':cloud:'              => ['pilvi'],
+            ':zap:'                => ['ukkonen', 'myrsky'],
+            ':snowflake:'          => ['lumi'],
+            ':sweat_drops:'        => ['vesi'],
+            ':new_moon_with_face:' => ['6666'], // Fallback :D
+        ];
+
+        foreach ($icons as $icon => $keywords) {
+            \preg_match_all('#' . \implode('|', $keywords) . '#', $text, $matches);
+
+            $icons[$icon] = \is_array($matches[0]) ? \count($matches[0]) : 0;
+        }
+
+        \asort($icons);
+
+        $icons = \array_keys($icons);
+
+        return \end($icons);
     }
 }
