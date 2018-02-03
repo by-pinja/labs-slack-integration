@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Handler\HandlerInterface;
 use App\Service\IncomingMessageHandler;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -28,8 +29,9 @@ class Kernel extends BaseKernel implements CompilerPassInterface
 {
     use MicroKernelTrait;
 
-    private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
+    private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * Gets the cache directory.
      *
@@ -40,6 +42,7 @@ class Kernel extends BaseKernel implements CompilerPassInterface
         return $this->getProjectDir() . '/var/cache/' . $this->environment;
     }
 
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * Gets the log directory.
      *
@@ -47,7 +50,7 @@ class Kernel extends BaseKernel implements CompilerPassInterface
      */
     public function getLogDir(): string
     {
-        return $this->getProjectDir().'/var/log';
+        return $this->getProjectDir() . '/var/log';
     }
 
     /**
@@ -70,6 +73,20 @@ class Kernel extends BaseKernel implements CompilerPassInterface
     }
 
     /**
+     * The extension point similar to the Bundle::build() method.
+     *
+     * Use this method to register compiler passes and manipulate the container during the building process.
+     *
+     * @param ContainerBuilder $container
+     */
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $container->registerForAutoconfiguration(HandlerInterface::class)->addTag(HandlerInterface::class);
+    }
+
+    /**
      * You can modify the container here before it is dumped to PHP code.
      *
      * @param ContainerBuilder $container
@@ -77,11 +94,11 @@ class Kernel extends BaseKernel implements CompilerPassInterface
      * @throws \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
      */
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         $collection = $container->getDefinition(IncomingMessageHandler::class);
 
-        foreach ($container->findTaggedServiceIds('app.messages.incoming') as $id => $tags) {
+        foreach ($container->findTaggedServiceIds(HandlerInterface::class) as $id => $tags) {
             $collection->addMethodCall('set', [new Reference($id)]);
         }
     }
@@ -114,14 +131,14 @@ class Kernel extends BaseKernel implements CompilerPassInterface
         $container->setParameter('container.dumper.inline_class_loader', true);
         $confDir = $this->getProjectDir() . '/config';
 
-        $loader->load($confDir . '/packages/*' . self::CONFIG_EXTS, 'glob');
+        $loader->load($confDir . '/packages/*' . self::CONFIG_EXTENSIONS, 'glob');
 
         if (\is_dir($confDir . '/packages/' . $this->environment)) {
-            $loader->load($confDir . '/packages/' . $this->environment . '/**/*' . self::CONFIG_EXTS, 'glob');
+            $loader->load($confDir . '/packages/' . $this->environment . '/**/*' . self::CONFIG_EXTENSIONS, 'glob');
         }
 
-        $loader->load($confDir . '/services' . self::CONFIG_EXTS, 'glob');
-        $loader->load($confDir . '/services_' . $this->environment . self::CONFIG_EXTS, 'glob');
+        $loader->load($confDir . '/services' . self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($confDir . '/services_' . $this->environment . self::CONFIG_EXTENSIONS, 'glob');
     }
 
     /**
@@ -136,16 +153,16 @@ class Kernel extends BaseKernel implements CompilerPassInterface
      */
     protected function configureRoutes(RouteCollectionBuilder $routes): void
     {
-        $confDir = $this->getProjectDir().'/config';
+        $confDir = $this->getProjectDir() . '/config';
 
         if (\is_dir($confDir . '/routes/')) {
-            $routes->import($confDir . '/routes/*' . self::CONFIG_EXTS, '/', 'glob');
+            $routes->import($confDir . '/routes/*' . self::CONFIG_EXTENSIONS, '/', 'glob');
         }
 
         if (\is_dir($confDir . '/routes/' . $this->environment)) {
-            $routes->import($confDir . '/routes/' . $this->environment . '/**/*' . self::CONFIG_EXTS, '/', 'glob');
+            $routes->import($confDir . '/routes/' . $this->environment . '/**/*' . self::CONFIG_EXTENSIONS, '/', 'glob');
         }
 
-        $routes->import($confDir . '/routes' . self::CONFIG_EXTS, '/', 'glob');
+        $routes->import($confDir . '/routes' . self::CONFIG_EXTENSIONS, '/', 'glob');
     }
 }

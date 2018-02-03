@@ -26,11 +26,5 @@ services:
         resource: '../src/Controller'
         tags: [ 'controller.service_arguments' ]
 
-    # Note that Resource objects needs to be public
-    App\Handler\:
-        resource: '../src/Handler/*'
-        tags: [ 'app.messages.incoming' ]
-
-
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
