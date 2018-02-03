@@ -31,6 +31,14 @@ class DefaultController
     use LoggerAwareTrait;
 
     /**
+     * Method to process outgoing message from user input to specified Slack channel. Currently following parameters
+     * are supported:
+     *
+     *  - message = Actual text message to send to channel (required)
+     *  - channel = Channel name without # where to post message (optional, defaults to 'labs')
+     *  - nick    = Nick name to use within this message (optional, defaults to 'mörkö')
+     *  - icon    = Nick name icon to use within this message (optional, default to ':ghost:')
+     *
      * @Route("")
      * @Method("GET")
      *
@@ -41,10 +49,9 @@ class DefaultController
      *
      * @throws \Http\Client\Exception
      */
-    public function sendAction(Request $request, Client $slackClient): JsonResponse
+    public function outgoingAction(Request $request, Client $slackClient): JsonResponse
     {
         $text = $request->get('message');
-        $output = true;
 
         if ($text !== null) {
             $message = $slackClient->createMessage();
@@ -54,17 +61,20 @@ class DefaultController
                 ->from($request->get('nick', 'mörkö'))
                 ->withIcon($request->get('icon', ':ghost:'))
                 ->setText($text);
-            try {
-                $slackClient->sendMessage($message);
-            } catch (\Exception $exception) {
-                $output = false;
-            }
+
+            $slackClient->sendMessage($message);
         }
 
-        return new JsonResponse($output, $output ? 200 : 500);
+        return new JsonResponse();
     }
 
     /**
+     * Action method to process incoming message from Slack. This action will convert request to proper object which
+     * is validated before it's passed to actual incoming message handler.
+     *
+     * This main message handler can have multiple handler services attached to it. All services that implements
+     * App\Handler\HandlerInterface interface are automatically added to main handler.
+     *
      * @Route("")
      * @Method("POST")
      *
@@ -84,6 +94,6 @@ class DefaultController
 
         $incomingMessageHandler->process($payload);
 
-        return new JsonResponse(true);
+        return new JsonResponse();
     }
 }
