@@ -223,4 +223,4 @@ And after that open `build/phpmetrics/index.html` with your favorite browser.
 
 [The MIT License (MIT)](LICENSE)
 
-Copyright (c) 2018 Protacon Solutions Ltd
+Copyright &copy; 2018 Protacon Solutions Ltd
