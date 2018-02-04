@@ -4,7 +4,7 @@ nexy_slack:
         client: httplug.client
 
     # The Slack API Incoming WebHooks URL.
-    endpoint: '%env(SLACK_ENDPOINT)%'
+    endpoint: '%env(SLACK_WEBHOOK_URL)%'
     channel: null
     username: null
     icon: null
