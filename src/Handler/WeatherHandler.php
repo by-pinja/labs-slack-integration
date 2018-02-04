@@ -86,18 +86,15 @@ class WeatherHandler implements HandlerInterface
      */
     public function process(SlackIncomingWebHook $slackIncomingWebHook): void
     {
-        // TODO handle this another way...
-        $apiKey = 'bb93aef1f102fd80a1e46f6dc8a34ea6';
-
-        $query = [
-            'APPID' => $apiKey,
+        $parameters = [
+            'APPID' => \getenv('OPEN_WEATHER_MAP_API_KEY'),
             'units' => 'metric',
             'lang'  => 'fi',
             'q'     => $this->location,
         ];
 
         $client = new Client();
-        $response = $client->request('GET', 'https://api.openweathermap.org/data/2.5/weather?' . http_build_query($query));
+        $response = $client->request('GET', 'https://api.openweathermap.org/data/2.5/weather?' . http_build_query($parameters));
 
         if ($response->getStatusCode() !== 200) {
             $this->logger->error($response->getBody()->getContents());
