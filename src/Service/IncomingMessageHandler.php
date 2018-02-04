@@ -47,6 +47,16 @@ class IncomingMessageHandler
     }
 
     /**
+     * Getter method for configured handlers.
+     *
+     * @return ArrayCollection<HandlerInterface>
+     */
+    public function get(): ArrayCollection
+    {
+        return $this->handlers;
+    }
+
+    /**
      * Method to process all incoming Slack messages. This one will process all registered Slack message handlers and
      * check which one of those supports current message. If message is supported 'process' method of that class is
      * called - otherwise just skip to next handler.
