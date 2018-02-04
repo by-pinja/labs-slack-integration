@@ -26,6 +26,7 @@ from Slack.
     * [PHP Code Sniffer](#php-code-sniffer)
     * [Docker](#docker)
   * [Testing](#testing)
+    * [Coverage](#coverage)
     * [Metrics](#metrics)
   * [Links / resources](#links--resources)
   * [Authors](#authors)
