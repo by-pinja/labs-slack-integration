@@ -1,6 +1,7 @@
 # What is this
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Build Status](https://jenkins.protacon.cloud/buildStatus/icon?job=www.github.com/labs-slack-integration/master)](https://jenkins.protacon.cloud/job/www.github.com/job/labs-slack-integration/job/master/)
 
 Simple application to send a messages to Slack and listen outgoing messages
 from Slack.
@@ -25,7 +26,7 @@ from Slack.
     * [PHP Code Sniffer](#php-code-sniffer)
     * [Docker](#docker)
   * [Testing](#testing)
-  * [Metrics](#metrics)
+    * [Metrics](#metrics)
   * [Links / resources](#links--resources)
 
 ## Requirements
@@ -182,7 +183,12 @@ change it to match your testing environment.
 
 Or you could easily configure your IDE to run these for you.
 
-## Metrics
+### Coverage
+
+After you have run tests you can see actual code coverage by opening
+`./build/report/index.html` with your favorite browser
+
+### Metrics
 
 Project also contains
 [PhpMetrics](https://github.com/phpmetrics/phpmetrics)
