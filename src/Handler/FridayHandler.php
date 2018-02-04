@@ -69,9 +69,9 @@ class FridayHandler implements HandlerInterface
      */
     public function supports(SlackIncomingWebHook $slackIncomingWebHook): bool
     {
-        \preg_match('#^(perjantai)$#u', $slackIncomingWebHook->getUserText(), $matches);
+        \preg_match('#^perjantai$#u', $slackIncomingWebHook->getUserText(), $matches);
 
-        return \is_array($matches) && isset($matches[1]);
+        return \is_array($matches) && isset($matches[0]);
     }
 
     /**
