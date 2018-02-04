@@ -3,8 +3,8 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Build Status](https://jenkins.protacon.cloud/buildStatus/icon?job=www.github.com/labs-slack-integration/master)](https://jenkins.protacon.cloud/job/www.github.com/job/labs-slack-integration/job/master/)
 
-Simple application to send a messages to Slack and listen outgoing messages
-from Slack.
+Simple application to send a messages to Slack and listen outgoing
+messages from Slack and reply those.
 
 ## Table of Contents
 
