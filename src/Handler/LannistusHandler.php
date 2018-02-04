@@ -76,11 +76,11 @@ class LannistusHandler implements HandlerInterface
     {
         $crawler = new Crawler(\file_get_contents('http://lannistajakuha.com/random'));
 
-        $message = $this->slackClient->createMessage();
-        $message->to($slackIncomingWebHook->getChannelName());
-        $message->from('Motivaattori');
-        $message->setIcon(':philosoraptor:');
-        $message->setText($crawler->filter('div.lannistus p.teksti')->text());
+        $message = $this->slackClient->createMessage()
+            ->to($slackIncomingWebHook->getChannelName())
+            ->from('Motivaattori')
+            ->setIcon(':philosoraptor:')
+            ->setText($crawler->filter('div.lannistus p.teksti')->text());
 
         unset($crawler);
 

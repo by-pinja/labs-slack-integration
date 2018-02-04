@@ -115,11 +115,11 @@ class WeatherHandler implements HandlerInterface
             $data->wind->speed
         );
 
-        $message = $this->slackClient->createMessage();
-        $message->to($slackIncomingWebHook->getChannelName());
-        $message->from('Weather information');
-        $message->setIcon($this->determineIcon($text));
-        $message->setText($text);
+        $message = $this->slackClient->createMessage()
+            ->to($slackIncomingWebHook->getChannelName())
+            ->from('Weather information')
+            ->setIcon($this->determineIcon($text))
+            ->setText($text);
 
         $this->slackClient->sendMessage($message);
     }

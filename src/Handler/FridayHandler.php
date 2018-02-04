@@ -93,11 +93,11 @@ class FridayHandler implements HandlerInterface
             $user = 'Party on';
         }
 
-        $message = $this->slackClient->createMessage();
-        $message->to($slackIncomingWebHook->getChannelName());
-        $message->from($user);
-        $message->setIcon($icon);
-        $message->setText($text);
+        $message = $this->slackClient->createMessage()
+            ->to($slackIncomingWebHook->getChannelName())
+            ->from($user)
+            ->setIcon($icon)
+            ->setText($text);
 
         $this->slackClient->sendMessage($message);
     }

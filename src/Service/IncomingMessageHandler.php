@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Handler\HandlerInterface;
+use App\Helper\LoggerAwareTrait;
 use App\Model\SlackIncomingWebHook;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -19,6 +20,9 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class IncomingMessageHandler
 {
+    // Traits
+    use LoggerAwareTrait;
+
     /**
      * @var ArrayCollection<IncomingMessageHandler>
      */
@@ -65,18 +69,39 @@ class IncomingMessageHandler
      */
     public function process(SlackIncomingWebHook $slackIncomingWebHook): void
     {
+        $handled = false;
+
         /**
          * Lambda function to check if incoming message from slack is supported by current handler or not. And if it is
          * supported current handler will process that message right away.
          *
          * @param HandlerInterface $handler
          */
-        $iterator = function (HandlerInterface $handler) use ($slackIncomingWebHook): void {
+        $iterator = function (HandlerInterface $handler) use ($slackIncomingWebHook, &$handled): void {
             if ($handler->supports($slackIncomingWebHook)) {
+                $message = \sprintf(
+                    'Handling message \'%s\' with \'%s\' handler',
+                    $slackIncomingWebHook->getUserText(),
+                    \get_class($handler)
+                );
+
+                $this->logger->info($message);
+
                 $handler->process($slackIncomingWebHook);
+
+                $handled = true;
             }
         };
 
         $this->handlers->map($iterator);
+
+        if ($handled === false) {
+            $message = \sprintf(
+                'No handler for message \'%s\'',
+                $slackIncomingWebHook->getUserText()
+            );
+
+            $this->logger->error($message);
+        }
     }
 }

@@ -126,11 +126,11 @@ class TravelHandler implements HandlerInterface
             $data->rows[0]->elements[0]->distance->value / 1000 * 0.42
         );
 
-        $message = $this->slackClient->createMessage();
-        $message->to($slackIncomingWebHook->getChannelName());
-        $message->from('Distance information');
-        $message->setIcon(':car:');
-        $message->setText($text);
+        $message = $this->slackClient->createMessage()
+            ->to($slackIncomingWebHook->getChannelName())
+            ->from('Distance information')
+            ->setIcon(':car:')
+            ->setText($text);
 
         $this->slackClient->sendMessage($message);
     }
