@@ -28,6 +28,8 @@ from Slack.
   * [Testing](#testing)
     * [Metrics](#metrics)
   * [Links / resources](#links--resources)
+  * [Authors](#authors)
+  * [License](#license)
 
 ## Requirements
 
