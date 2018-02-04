@@ -13,6 +13,7 @@
         "symfony/apache-pack": "1.0.1",
         "symfony/asset": "4.0.4",
         "symfony/console": "4.0.4",
+        "symfony/css-selector": "4.0.4",
         "symfony/debug-pack": "1.0.4",
         "symfony/expression-language": "4.0.4",
         "symfony/flex": "1.0.68",
