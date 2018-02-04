@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * /src/Handler/WeatherHandler.php
  *
@@ -52,9 +52,9 @@ class WeatherHandler implements HandlerInterface
      */
     public function supports(SlackIncomingWebHook $slackIncomingWebHook): bool
     {
-        preg_match('#^!sää (\w+)#u', $slackIncomingWebHook->getText(), $matches);
+        preg_match('#^sää (\w+)#u', $slackIncomingWebHook->getUserText(), $matches);
 
-        if ($matches[1]) {
+        if (\is_array($matches) && isset($matches[1])) {
             $this->location = $matches[1];
         }
 
