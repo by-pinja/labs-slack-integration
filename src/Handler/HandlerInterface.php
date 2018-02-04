@@ -18,6 +18,15 @@ use App\Model\SlackIncomingWebHook;
 interface HandlerInterface
 {
     /**
+     * Method to get handler information.
+     *
+     * @param SlackIncomingWebHook $slackIncomingWebHook
+     *
+     * @return string
+     */
+    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): string;
+
+    /**
      * Method to check if handler supports incoming message or not.
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook

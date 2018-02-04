@@ -46,6 +46,21 @@ class FridayHandler implements HandlerInterface
     }
 
     /**
+     * Method to get handler information.
+     *
+     * @param SlackIncomingWebHook $slackIncomingWebHook
+     *
+     * @return string
+     */
+    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): string
+    {
+        return sprintf(
+            '`%sperjantai` Onko jo perjantai?',
+            $slackIncomingWebHook->getTriggerWord()
+        );
+    }
+
+    /**
      * Method to check if handler supports incoming message or not.
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook
