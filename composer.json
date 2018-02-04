@@ -22,6 +22,7 @@
         "symfony/lts": "^4@dev",
         "symfony/monolog-bundle": "3.1.2",
         "symfony/process": "4.0.4",
+        "symfony/requirements-checker": "1.0.3",
         "symfony/security-bundle": "4.0.4",
         "symfony/serializer-pack": "1.0.1",
         "symfony/validator": "4.0.4",
@@ -65,7 +66,8 @@
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install --symlink --relative %PUBLIC_DIR%": "symfony-cmd",
-            "security-checker security:check": "script"
+            "security-checker security:check": "script",
+            "requirements-checker": "script"
         },
         "post-install-cmd": [
             "@auto-scripts"
