@@ -74,7 +74,7 @@ class LannistusHandler implements HandlerInterface
      */
     public function process(SlackIncomingWebHook $slackIncomingWebHook): void
     {
-        $crawler = new Crawler(\file_get_contents('http://lannistajakuha.com/'));
+        $crawler = new Crawler(\file_get_contents('http://lannistajakuha.com/random'));
 
         $message = $this->slackClient->createMessage();
         $message->to($slackIncomingWebHook->getChannelName());
