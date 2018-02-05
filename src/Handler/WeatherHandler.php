@@ -21,6 +21,7 @@ use Nexy\Slack\Client as SlackClient;
 class WeatherHandler implements HandlerInterface
 {
     // Traits
+    use HelperTrait;
     use LoggerAwareTrait;
 
     /**
@@ -48,14 +49,14 @@ class WeatherHandler implements HandlerInterface
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook
      *
-     * @return string
+     * @return array
      */
-    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): string
+    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): array
     {
-        return sprintf(
-            '`%ssää [paikkakunta]` Kertoo sään halutulta paikkakunnalta',
-            $slackIncomingWebHook->getTriggerWord()
-        );
+        return [
+            $slackIncomingWebHook->getTriggerWord() . 'sää [paikkakunta]',
+            'Kertoo sään halutulta paikkakunnalta - ' . $this->getSourceLink(\basename(__FILE__)),
+        ];
     }
 
     /**

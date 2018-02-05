@@ -9,6 +9,8 @@ namespace App\Handler;
 
 use App\Model\SlackIncomingWebHook;
 use App\Service\IncomingMessageHandler;
+use Nexy\Slack\Attachment;
+use Nexy\Slack\AttachmentField;
 use Nexy\Slack\Client as SlackClient;
 
 /**
@@ -19,6 +21,9 @@ use Nexy\Slack\Client as SlackClient;
  */
 class CommandHandler implements HandlerInterface
 {
+    // Traits
+    use HelperTrait;
+
     /**
      * @var SlackClient
      */
@@ -46,14 +51,14 @@ class CommandHandler implements HandlerInterface
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook
      *
-     * @return string
+     * @return array
      */
-    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): string
+    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): array
     {
-        return \sprintf(
-            '`%skomennot` Listaa käytettävissä olevat komennot',
-            $slackIncomingWebHook->getTriggerWord()
-        );
+        return [
+            $slackIncomingWebHook->getTriggerWord() . 'komennot',
+            'Listaa käytettävissä olevat komennot - ' . $this->getSourceLink(\basename(__FILE__)),
+        ];
     }
 
     /**
@@ -79,27 +84,39 @@ class CommandHandler implements HandlerInterface
      */
     public function process(SlackIncomingWebHook $slackIncomingWebHook): void
     {
+        $attachment = new Attachment();
+
         /**
          * Lambda function to get each handler information for Slack message.
          *
          * @param HandlerInterface $handler
          *
-         * @return string
+         * @return AttachmentField
          */
-        $iterator = function (HandlerInterface $handler) use ($slackIncomingWebHook): string {
-            return $handler->getInformation($slackIncomingWebHook);
+        $iterator = function (HandlerInterface $handler) use ($slackIncomingWebHook): AttachmentField {
+            [$title, $value] = $handler->getInformation($slackIncomingWebHook);
+
+            return new AttachmentField($title, $value, true);
         };
 
-        $commands = $this->incomingMessageHandler->get()->map($iterator)->toArray();
+        $sorter = function (AttachmentField $a, AttachmentField $b): int {
+            return $a->getTitle() < $b->getTitle() ? -1 : 1;
+        };
 
-        sort($commands);
+        $iterator = $this->incomingMessageHandler->get()->map($iterator)->getIterator();
+        $iterator->uasort($sorter);
+
+        /** @var AttachmentField $attachmentField */
+        foreach ($iterator as $attachmentField) {
+            $attachment->addField($attachmentField);
+        }
 
         // Create message
         $message = $this->slackClient->createMessage()
             ->to($slackIncomingWebHook->getChannelName())
             ->from('your humble servant')
             ->setIcon(':information_source:')
-            ->setText(\implode("\n", $commands));
+            ->attach($attachment);
 
         $this->slackClient->sendMessage($message);
     }

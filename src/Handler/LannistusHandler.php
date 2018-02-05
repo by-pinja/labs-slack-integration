@@ -19,6 +19,9 @@ use Symfony\Component\DomCrawler\Crawler;
  */
 class LannistusHandler implements HandlerInterface
 {
+    // Traits
+    use HelperTrait;
+
     /**
      * @var SlackClient
      */
@@ -39,14 +42,14 @@ class LannistusHandler implements HandlerInterface
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook
      *
-     * @return string
+     * @return array
      */
-    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): string
+    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): array
     {
-        return sprintf(
-            '`%slannistus` Päivän motivaattori',
-            $slackIncomingWebHook->getTriggerWord()
-        );
+        return [
+            $slackIncomingWebHook->getTriggerWord() . 'lannistus',
+            'Päivän motivaattori - ' . $this->getSourceLink(\basename(__FILE__)),
+        ];
     }
 
     /**

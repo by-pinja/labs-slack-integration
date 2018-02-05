@@ -18,6 +18,9 @@ use Nexy\Slack\Client as SlackClient;
  */
 class FridayHandler implements HandlerInterface
 {
+    // Traits
+    use HelperTrait;
+
     /**
      * @var array
      */
@@ -50,14 +53,14 @@ class FridayHandler implements HandlerInterface
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook
      *
-     * @return string
+     * @return array
      */
-    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): string
+    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): array
     {
-        return sprintf(
-            '`%sperjantai` Onko jo perjantai?',
-            $slackIncomingWebHook->getTriggerWord()
-        );
+        return [
+            $slackIncomingWebHook->getTriggerWord() . 'perjantai',
+            'Onko jo perjantai? - ' . $this->getSourceLink(\basename(__FILE__)),
+        ];
     }
 
     /**

@@ -21,6 +21,7 @@ use Nexy\Slack\Client as SlackClient;
 class TravelHandler implements HandlerInterface
 {
     // Traits
+    use HelperTrait;
     use LoggerAwareTrait;
 
     /**
@@ -58,14 +59,14 @@ class TravelHandler implements HandlerInterface
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook
      *
-     * @return string
+     * @return array
      */
-    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): string
+    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): array
     {
-        return sprintf(
-            '`%smatka [mista] [minne]` Kertoo välimatkan, keston sekä kilometrikorvaukset',
-            $slackIncomingWebHook->getTriggerWord()
-        );
+        return [
+            $slackIncomingWebHook->getTriggerWord() . 'matka [mista] [minne]',
+            'Kertoo välimatkan, keston sekä kilometrikorvaukset - ' . $this->getSourceLink(\basename(__FILE__)),
+        ];
     }
 
     /**

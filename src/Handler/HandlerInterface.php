@@ -22,9 +22,9 @@ interface HandlerInterface
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook
      *
-     * @return string
+     * @return array
      */
-    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): string;
+    public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): array;
 
     /**
      * Method to check if handler supports incoming message or not.
