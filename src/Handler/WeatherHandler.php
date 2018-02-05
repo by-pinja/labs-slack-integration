@@ -10,6 +10,8 @@ namespace App\Handler;
 use App\Helper\LoggerAwareTrait;
 use App\Model\SlackIncomingWebHook;
 use GuzzleHttp\Client;
+use Nexy\Slack\Attachment;
+use Nexy\Slack\AttachmentField;
 use Nexy\Slack\Client as SlackClient;
 
 /**
@@ -97,30 +99,30 @@ class WeatherHandler implements HandlerInterface
         $client = new Client();
         $response = $client->request('GET', 'https://api.openweathermap.org/data/2.5/weather?' . http_build_query($parameters));
 
+        $data = \json_decode($response->getBody()->getContents());
+
+        $attachment = new Attachment();
+
         if ($response->getStatusCode() !== 200) {
             $this->logger->error($response->getBody()->getContents());
 
-            return;
+            $attachment->setColor('#ff0000');
+
+            $value = '_oh noes ei data..._';
+        } else {
+            $value = $this->getAttachmentValue($data);
         }
 
-        $data = \json_decode($response->getBody()->getContents());
+        $attachment->addField(new AttachmentField($this->location, $value));
 
-        $iterator = function (\stdClass $weather): string {
-            return $weather->description;
-        };
-
-        $text = \sprintf(
-            '%s°C %s, tuulta %sm/s',
-            $data->main->temp,
-            \implode(', ', \array_map($iterator, $data->weather)),
-            $data->wind->speed
-        );
+        $this->logger->error('https://api.openweathermap.org/data/2.5/weather?' . http_build_query($parameters));
 
         $message = $this->slackClient->createMessage()
             ->to($slackIncomingWebHook->getChannelName())
             ->from('Weather information')
-            ->setIcon($this->determineIcon($text))
-            ->setText($text);
+            ->setIcon($this->determineIcon($value))
+            ->attach($attachment);
+            //->setText($text);
 
         $this->slackClient->sendMessage($message);
     }
@@ -152,5 +154,62 @@ class WeatherHandler implements HandlerInterface
         $icons = \array_keys($icons);
 
         return \end($icons);
+    }
+
+    /**
+     * @param $data
+     *
+     * @return string
+     */
+    private function getAttachmentValue(\stdClass $data): string
+    {
+        $iterator = function (\stdClass $weather): string {
+            return \ucfirst($weather->description);
+        };
+
+        return \sprintf(
+            "Lämpötila %s°C\n%s\nTuulta %s %sm/s (%.2f°)",
+            $data->main->temp,
+            \implode(', ', \array_map($iterator, $data->weather)),
+            $this->windCardinals($data->wind->deg),
+            $data->wind->speed,
+            $data->wind->deg
+        );
+    }
+
+    /**
+     * @param float $deg
+     *
+     * @return string
+     */
+    private function windCardinals(float $deg): string
+    {
+        $cardinalDirections = [
+            ['pohjoisesta',       348.75, 360],
+            ['pohjoisesta',       0,      11.25],
+            ['pohjoiskoilisesta', 11.25,  33.75],
+            ['koilisesta',        33.75,  56.25],
+            ['itäkoilisesta',     56.25,  78.75],
+            ['idästä',            78.75,  101.25],
+            ['itäkaakosta',       101.25, 123.75],
+            ['kaakosta',          123.75, 146.25],
+            ['eteläkaakosta',     146.25, 168.75],
+            ['etelästä',          168.75, 191.25],
+            ['etelälounaasta',    191.25, 213.75],
+            ['lounaasta',         213.75, 236.25],
+            ['länsilounaasta',    236.25, 258.75],
+            ['lännestä',          258.75, 281.25],
+            ['länsiluoteesta',    281.25, 303.75],
+            ['luoteesta',         303.75, 326.25],
+            ['pohjoisluoteesta',  326.25, 348.75],
+        ];
+
+        foreach ($cardinalDirections as $angles) {
+            if ($deg >= $angles[1] && $deg < $angles[2]) {
+                $cardinal = $angles[0];
+            }
+        }
+
+        return $cardinal;
     }
 }
