@@ -10,6 +10,7 @@ namespace App\Controller;
 use App\Helper\LoggerAwareTrait;
 use App\Model\SlackIncomingWebHook;
 use App\Service\IncomingMessageHandler;
+use App\Util\JSON;
 use Nexy\Slack\Client;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -83,6 +84,7 @@ class DefaultController
      * @param IncomingMessageHandler $incomingMessageHandler
      *
      * @return JsonResponse
+     * @throws \LogicException
      */
     public function incomingAction(
         Request $request,
@@ -90,9 +92,13 @@ class DefaultController
         IncomingMessageHandler $incomingMessageHandler
     ): JsonResponse {
         /** @var SlackIncomingWebHook $payload */
-        $payload = $serializer->deserialize(\json_encode($request->request->all()), SlackIncomingWebHook::class, 'json');
+        $payload = $serializer->deserialize(JSON::encode($request->request->all()), SlackIncomingWebHook::class, 'json');
 
-        $incomingMessageHandler->process($payload);
+        if ($payload->getToken() === \getenv('SLACK_TOKEN')) {
+            $incomingMessageHandler->process($payload);
+        } else {
+            $this->logger->error('Invalid payload token!', $request->request->all());
+        }
 
         return new JsonResponse();
     }
