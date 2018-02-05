@@ -167,13 +167,25 @@ class WeatherHandler implements HandlerInterface
             return \ucfirst($weather->description);
         };
 
+        $sunrise = \DateTime::createFromFormat('U', (string)$data->sys->sunrise, new \DateTimeZone('UTC'))
+            ->setTimezone(new \DateTimeZone('Europe/Helsinki'));
+
+        $sunset = \DateTime::createFromFormat('U', (string)$data->sys->sunset, new \DateTimeZone('UTC'))
+            ->setTimezone(new \DateTimeZone('Europe/Helsinki'));
+
+        $interval = $sunset->diff($sunrise);
+
         return \sprintf(
-            "Lämpötila %s°C\n%s\nTuulta %s %sm/s (%.2f°)",
+            "Lämpötila `%s°C`, tuulta %s `%sm/s` _(%.2f°)_\nAurinko nousee `%s` ja laskee `%s` - päivän pituus `%sh %smin`\n%s",
             $data->main->temp,
-            \implode(', ', \array_map($iterator, $data->weather)),
             $this->windCardinals($data->wind->deg),
             $data->wind->speed,
-            $data->wind->deg
+            $data->wind->deg,
+            $sunrise->format('H:i'),
+            $sunset->format('H:i'),
+            $interval->format('%h'),
+            $interval->format('%i'),
+            \implode(', ', \array_map($iterator, $data->weather))
         );
     }
 
@@ -204,8 +216,10 @@ class WeatherHandler implements HandlerInterface
             ['pohjoisluoteesta',  326.25, 348.75],
         ];
 
+        $cardinal = '_tuntematon_';
+
         foreach ($cardinalDirections as $angles) {
-            if ($deg >= $angles[1] && $deg < $angles[2]) {
+            if ($deg >= $angles[1] && $deg <= $angles[2]) {
                 $cardinal = $angles[0];
             }
         }
