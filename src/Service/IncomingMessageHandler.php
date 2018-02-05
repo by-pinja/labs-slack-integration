@@ -101,7 +101,7 @@ class IncomingMessageHandler
                 $slackIncomingWebHook->getUserText()
             );
 
-            $this->logger->error($message);
+            $this->logger->warning($message);
         }
     }
 }
