@@ -10,6 +10,8 @@ namespace App\Handler;
 use App\Helper\LoggerAwareTrait;
 use App\Model\SlackIncomingWebHook;
 use GuzzleHttp\Client;
+use Nexy\Slack\Attachment;
+use Nexy\Slack\AttachmentField;
 use Nexy\Slack\Client as SlackClient;
 
 /**
@@ -118,21 +120,49 @@ class TravelHandler implements HandlerInterface
 
         $data = \json_decode($response->getBody()->getContents());
 
-        $text = \sprintf(
-            'Välimatka %s - %s %s, kesto %s, kilometrikorvaukset %.2f€',
-            $this->from,
-            $this->to,
-            $data->rows[0]->elements[0]->distance->text,
-            $data->rows[0]->elements[0]->duration->text,
-            $data->rows[0]->elements[0]->distance->value / 1000 * 0.42
-        );
+        $title = $this->from . ' - ' . $this->to;
+
+        $attachment = new Attachment();
+
+        if ($data->rows[0]->elements[0]->status !== 'OK') {
+            $value = 'oh noes, ei tuloksia...';
+
+            $attachment->setColor('#ff0000');
+        } else {
+            $title .= ' (' . $data->origin_addresses[0] . ' - ' . $data->destination_addresses[0] . ')';
+
+            $value = \sprintf(
+                "Välimatka `%s`\nKesto `%s`\nKilometrikorvaukset `%.2f€`",
+                $data->rows[0]->elements[0]->distance->text,
+                $data->rows[0]->elements[0]->duration->text,
+                $data->rows[0]->elements[0]->distance->value / 1000 * 0.42
+            );
+
+            $attachment->setFooter($this->getFooter($data));
+        }
+
+        $attachment->addField(new AttachmentField($title, $value));
 
         $message = $this->slackClient->createMessage()
             ->to($slackIncomingWebHook->getChannelName())
             ->from('Distance information')
             ->setIcon(':car:')
-            ->setText($text);
+            ->attach($attachment);
 
         $this->slackClient->sendMessage($message);
+    }
+
+    /**
+     * @param \stdClass $data
+     *
+     * @return string
+     */
+    private function getFooter(\stdClass $data): string
+    {
+        return \sprintf(
+            'Infot googlesta - <https://www.google.fi/maps/dir/%s/%s|katso reitti>',
+            urlencode($data->origin_addresses[0]),
+            $data->destination_addresses[0]
+        );
     }
 }
