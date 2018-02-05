@@ -9,7 +9,9 @@ namespace App\Handler;
 
 use App\Helper\LoggerAwareTrait;
 use App\Model\SlackIncomingWebHook;
+use App\Util\JSON;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use Nexy\Slack\Attachment;
 use Nexy\Slack\AttachmentField;
 use Nexy\Slack\Client as SlackClient;
@@ -84,6 +86,7 @@ class WeatherHandler implements HandlerInterface
      *
      * @param SlackIncomingWebHook $slackIncomingWebHook
      *
+     * @throws \LogicException
      * @throws \RuntimeException
      * @throws \Http\Client\Exception
      */
@@ -97,32 +100,46 @@ class WeatherHandler implements HandlerInterface
         ];
 
         $client = new Client();
-        $response = $client->request('GET', 'https://api.openweathermap.org/data/2.5/weather?' . http_build_query($parameters));
-
-        $data = \json_decode($response->getBody()->getContents());
 
         $attachment = new Attachment();
 
-        if ($response->getStatusCode() !== 200) {
-            $this->logger->error($response->getBody()->getContents());
+        try {
+            $response = $client->request('GET', 'https://api.openweathermap.org/data/2.5/weather?' . http_build_query($parameters));
+
+            $data = \json_decode($response->getBody()->getContents());
+
+            if ($response->getStatusCode() !== 200) {
+                $this->logger->error($response->getBody()->getContents());
+
+                $attachment->setColor('#ff0000');
+
+                $value = '_oh noes ei data..._';
+            } else {
+                $value = $this->getAttachmentValue($data);
+            }
+        } catch (ClientException $error) {
+            $this->logger->error($error->getMessage());
+
+            $response = $error->getResponse();
+
+            $value = '_oh noes, error occurred - ' . $error->getCode() . '_ ';
+
+            if ($response !== null) {
+                $responseData = JSON::decode($response->getBody()->getContents());
+
+                $value = '_oh noes, error occurred - ' . $responseData->message . '_ ';
+            }
 
             $attachment->setColor('#ff0000');
-
-            $value = '_oh noes ei data..._';
-        } else {
-            $value = $this->getAttachmentValue($data);
         }
 
         $attachment->addField(new AttachmentField($this->location, $value));
-
-        $this->logger->error('https://api.openweathermap.org/data/2.5/weather?' . http_build_query($parameters));
 
         $message = $this->slackClient->createMessage()
             ->to($slackIncomingWebHook->getChannelName())
             ->from('Weather information')
             ->setIcon($this->determineIcon($value))
             ->attach($attachment);
-            //->setText($text);
 
         $this->slackClient->sendMessage($message);
     }
