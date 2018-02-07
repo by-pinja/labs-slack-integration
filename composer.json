@@ -9,7 +9,7 @@
         "nexylan/slack-bundle": "2.0.0",
         "php-http/guzzle6-adapter": "1.1.1",
         "roave/security-advisories": "dev-master",
-        "sensio/framework-extra-bundle": "5.1.4",
+        "sensio/framework-extra-bundle": "5.1.5",
         "symfony/apache-pack": "1.0.1",
         "symfony/asset": "4.0.4",
         "symfony/console": "4.0.4",
@@ -29,7 +29,7 @@
         "symfony/yaml": "4.0.4"
     },
     "require-dev": {
-        "codedungeon/phpunit-result-printer": "0.5.4",
+        "codedungeon/phpunit-result-printer": "0.6.0",
         "phpmetrics/phpmetrics": "2.3.2",
         "sensiolabs/security-checker": "4.1.7",
         "squizlabs/php_codesniffer": "3.2.2",
