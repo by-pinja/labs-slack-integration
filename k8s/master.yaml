@@ -1,3 +1,23 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: labs-slack-integration-master
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: default-limit-range
+  namespace: labs-slack-integration-master
+spec:
+  limits:
+  - default:
+      cpu: 300m
+      memory: 512Mi
+    defaultRequest:
+      cpu: 0
+      memory: 0
+    type: Container
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -61,3 +81,22 @@ spec:
     app: labs-slack-integration
     role: backend
     version: master
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: labs-slack-integration-master-ingress
+  namespace: labs-slack-integration-master
+  annotations:
+    kubernetes.io/ingress.class: traefik
+  labels:
+    traefik-type: public
+spec:
+  rules:
+    - host: labs-slack-integration-master.protacon.cloud
+      http:
+        paths:
+          - backend:
+              serviceName: labs-slack-integration
+              servicePort: 80
+    - host: labs-slack-integration-master.protacon.cloud
