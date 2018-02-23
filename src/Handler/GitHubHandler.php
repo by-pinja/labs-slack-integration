@@ -146,18 +146,26 @@ class GitHubHandler implements HandlerInterface
             return;
         }
 
-        $filter = function (array $repository) use ($client): bool {
+        $rep = [];
+
+        $filter = function (array &$repository) use ($client, &$rep): bool {
             $output = true;
 
             try {
                 $readme = $client->api('repo')->contents()->readme($repository['owner']['login'], $repository['name']);
 
                 if ($readme['size'] < 100) {
-                    throw new \LengthException('too small readme file - ' . $readme['size']);
+                    $rep[$repository['full_name']] = 1;
+
+                    throw new \LengthException('too small readme file - ' . $repository['full_name'] . ' - ' . $readme['size']);
                 }
 
                 $output = false;
             } catch (\Exception $exception) {
+                if (!\array_key_exists($repository['full_name'], $rep)) {
+                    $rep[$repository['full_name']] = 0;
+                }
+
                 $this->logger->info($exception->getMessage());
             }
 
@@ -166,12 +174,25 @@ class GitHubHandler implements HandlerInterface
 
 
         $organizationApi = $client->api('organization');
-        $repositories = \array_filter((new ResultPager($client))->fetchAll($organizationApi, 'repositories', ['protacon']), $filter);
+        $repositories = (new ResultPager($client))->fetchAll($organizationApi, 'repositories', ['protacon']);
+
+        $totalCountOfRepositories = \count($repositories);
+
+        $repositories = \array_filter($repositories, $filter);
 
         $attachment = new Attachment();
+        $attachment->setFooter('Please inform those repository owners / coders about this "problem"');
 
-        $iterator = function (array $repository) use ($attachment): void {
-            $field = new AttachmentField($repository['full_name'], $repository['html_url'], true);
+        $iterator = function (array $repository) use ($attachment, $rep): void {
+            $message = '';
+
+            if ($rep[$repository['full_name']] === 0) {
+                $message = '*no README.md at all*';
+            } elseif ($rep[$repository['full_name']] === 1) {
+                $message = '_really short README.md_';
+            }
+
+            $field = new AttachmentField($repository['full_name'], $repository['html_url'] . "\n" . $message, true);
 
             $attachment->addField($field);
             $attachment->setColor('#ff0000');
@@ -183,7 +204,7 @@ class GitHubHandler implements HandlerInterface
             ->to($slackIncomingWebHook->getChannelName())
             ->from('GitHub')
             ->setIcon(':github:')
-            ->setText('Found total ' . \count($repositories) . ' repositories without *README.md* file')
+            ->setText('Found total ' . \count($repositories) . '/' . $totalCountOfRepositories . ' repositories without *README.md* file OR it content is _really short_...')
             ->attach($attachment);
 
         $this->slackClient->sendMessage($message);
