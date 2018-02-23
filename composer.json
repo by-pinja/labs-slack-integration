@@ -6,6 +6,7 @@
         "ext-iconv": "*",
         "cmfcmf/openweathermap-php-api": "2.2.3",
         "guzzlehttp/guzzle": "6.3.0",
+        "knplabs/github-api": "2.7.0",
         "nexylan/slack-bundle": "2.0.0",
         "php-http/guzzle6-adapter": "1.1.1",
         "roave/security-advisories": "dev-master",

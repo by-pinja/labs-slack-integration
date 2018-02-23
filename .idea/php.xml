@@ -97,6 +97,7 @@
       <path value="$PROJECT_DIR$/vendor/cmfcmf/openweathermap-php-api" />
       <path value="$PROJECT_DIR$/vendor/symfony/css-selector" />
       <path value="$PROJECT_DIR$/vendor/symfony/requirements-checker" />
+      <path value="$PROJECT_DIR$/vendor/knplabs/github-api" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.1" />

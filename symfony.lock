@@ -56,6 +56,15 @@
     "hassankhan/config": {
         "version": "0.10.0"
     },
+    "knplabs/github-api": {
+        "version": "2.6",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "2.6",
+            "ref": "343a54894c535b6ef0d1a297f543793b3852ea9d"
+        }
+    },
     "monolog/monolog": {
         "version": "1.23.0"
     },

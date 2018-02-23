@@ -19,6 +19,7 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/guzzlehttp/promises" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/guzzlehttp/psr7" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/hassankhan/config" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/knplabs/github-api" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/monolog/monolog" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/nexylan/slack" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/nexylan/slack-bundle" />
