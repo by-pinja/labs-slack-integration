@@ -8,7 +8,7 @@ declare(strict_types = 1);
 namespace App\Model;
 
 /**
- * Class SlackIncomingWebhook
+ * Class SlackIncomingWebHook
  *
  * @package App\Model
  * @author TLe, Tarmo Leppänen <tarmo.leppanen@protacon.com>
