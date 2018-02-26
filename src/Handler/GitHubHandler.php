@@ -9,8 +9,8 @@ namespace App\Handler;
 
 use App\Helper\LoggerAwareTrait;
 use App\Model\SlackIncomingWebHook;
-use Github\Client as GitHubClient;
-use Github\ResultPager;
+use App\Service\GitHub;
+use Doctrine\Common\Collections\ArrayCollection;
 use Nexy\Slack\Attachment;
 use Nexy\Slack\AttachmentField;
 use Nexy\Slack\Client as SlackClient;
@@ -35,6 +35,11 @@ class GitHubHandler implements HandlerInterface
     private $slackClient;
 
     /**
+     * @var GitHub
+     */
+    private $gitHub;
+
+    /**
      * @var string
      */
     private $command;
@@ -49,11 +54,13 @@ class GitHubHandler implements HandlerInterface
     /**
      * GitHubHandler constructor.
      *
-     * @param SlackClient  $slackClient
+     * @param SlackClient $slackClient
+     * @param GitHub      $gitHub
      */
-    public function __construct(SlackClient $slackClient)
+    public function __construct(SlackClient $slackClient, GitHub $gitHub)
     {
         $this->slackClient = $slackClient;
+        $this->gitHub = $gitHub;
     }
 
     /**
@@ -124,15 +131,46 @@ class GitHubHandler implements HandlerInterface
 
         $this->slackClient->sendMessage($message);
 
-        $client = new GitHubClient();
-        $client->authenticate(\getenv('GITHUB_SECRET'), null, GitHubClient::AUTH_HTTP_TOKEN );
+        if ($this->isRateLimitExceeded($slackIncomingWebHook) === true) {
+            return;
+        }
 
-        $rateLimit = $client->api('rate_limit')->getRateLimits();
+        $repositoryMeta = [];
 
-        if ($rateLimit['rate']['remaining'] < 500) {
-            $dateTime = \DateTime::createFromFormat('U', (string)$rateLimit['rate']['reset']);
+        $repositories = $this->gitHub->getRepositoriesOrganization('protacon');
+        $repositoryCount = \count($repositories);
+        $repositories = $repositories->filter($this->repositoryFilter($repositoryMeta));
+
+        $attachment = new Attachment();
+        $attachment->setFooter('Please inform those repository owners / coders about this "problem"');
+
+        $this->createAttachmentFields($attachment, $repositoryMeta, $repositories);
+
+        $message = $this->slackClient->createMessage()
+            ->to($slackIncomingWebHook->getChannelName())
+            ->from('GitHub')
+            ->setIcon(':github:')
+            ->setText('Found total ' . \count($repositories) . '/' . $repositoryCount . ' repositories without *README.md* file OR it content is _really short_...')
+            ->attach($attachment);
+
+        $this->slackClient->sendMessage($message);
+    }
+
+    /**
+     * @param SlackIncomingWebHook $slackIncomingWebHook
+     *
+     * @return bool
+     *
+     * @throws \Http\Client\Exception
+     */
+    private function isRateLimitExceeded(SlackIncomingWebHook $slackIncomingWebHook): bool
+    {
+        $output = false;
+
+        // TODO calculate needed amount
+        if ($this->gitHub->getRemainingRateLimit() < 500) {
+            $dateTime = $this->gitHub->getRateLimitExpiration();
             $dateTime->setTimezone(new \DateTimeZone('Europe/Helsinki'));
-
             $date = $dateTime->format('d.m.Y H:i:s');
 
             $message = $this->slackClient->createMessage()
@@ -143,46 +181,21 @@ class GitHubHandler implements HandlerInterface
 
             $this->slackClient->sendMessage($message);
 
-            return;
+            $output = true;
         }
 
-        $rep = [];
+        return $output;
+    }
 
-        $filter = function (array &$repository) use ($client, &$rep): bool {
-            $output = true;
-
-            try {
-                $readme = $client->api('repo')->contents()->readme($repository['owner']['login'], $repository['name']);
-
-                if ($readme['size'] < 100) {
-                    $rep[$repository['full_name']] = 1;
-
-                    throw new \LengthException('too small readme file - ' . $repository['full_name'] . ' - ' . $readme['size']);
-                }
-
-                $output = false;
-            } catch (\Exception $exception) {
-                if (!\array_key_exists($repository['full_name'], $rep)) {
-                    $rep[$repository['full_name']] = 0;
-                }
-
-                $this->logger->info($exception->getMessage());
-            }
-
-            return $output;
-        };
-
-
-        $organizationApi = $client->api('organization');
-        $repositories = (new ResultPager($client))->fetchAll($organizationApi, 'repositories', ['protacon']);
-
-        $totalCountOfRepositories = \count($repositories);
-
-        $repositories = \array_filter($repositories, $filter);
-
-        $attachment = new Attachment();
-        $attachment->setFooter('Please inform those repository owners / coders about this "problem"');
-
+    /**
+     * Helper method to create attachment fields of founded repositories.
+     *
+     * @param Attachment      $attachment
+     * @param array           $rep
+     * @param ArrayCollection $repositories
+     */
+    private function createAttachmentFields(Attachment $attachment, array $rep, ArrayCollection $repositories): void
+    {
         $iterator = function (array $repository) use ($attachment, $rep): void {
             $message = '';
 
@@ -192,21 +205,44 @@ class GitHubHandler implements HandlerInterface
                 $message = '_really short README.md_';
             }
 
-            $field = new AttachmentField($repository['full_name'], $repository['html_url'] . "\n" . $message, true);
+            $field = new AttachmentField($repository['full_name'], $message . "\n" . $repository['html_url'], true);
 
             $attachment->addField($field);
             $attachment->setColor('#ff0000');
         };
 
-        \array_map($iterator, $repositories);
+        $repositories->map($iterator);
+    }
 
-        $message = $this->slackClient->createMessage()
-            ->to($slackIncomingWebHook->getChannelName())
-            ->from('GitHub')
-            ->setIcon(':github:')
-            ->setText('Found total ' . \count($repositories) . '/' . $totalCountOfRepositories . ' repositories without *README.md* file OR it content is _really short_...')
-            ->attach($attachment);
+    /**
+     * @param array $repositoryMeta
+     *
+     * @return \Closure
+     */
+    private function repositoryFilter(array &$repositoryMeta): \Closure
+    {
+        return function (array $repository) use (&$repositoryMeta): bool {
+            $output = true;
 
-        $this->slackClient->sendMessage($message);
+            try {
+                $readme = $this->gitHub->getReadMe($repository);
+
+                if ($readme['size'] < 100) {
+                    $repositoryMeta[$repository['full_name']] = 1;
+
+                    throw new \LengthException('too small readme file - ' . $repository['full_name'] . ' - ' . $readme['size']);
+                }
+
+                $output = false;
+            } catch (\Exception $exception) {
+                if (!\array_key_exists($repository['full_name'], $repositoryMeta)) {
+                    $repositoryMeta[$repository['full_name']] = 0;
+                }
+
+                $this->logger->info($exception->getMessage());
+            }
+
+            return $output;
+        };
     }
 }
