@@ -27,7 +27,7 @@ class GitHubHandler implements HandlerInterface
     use HelperTrait;
     use LoggerAwareTrait;
 
-    private const COMMAND_CHECK = 'check';
+    private const COMMAND_CHECK = 'check-org';
 
     /**
      * @var SlackClient
@@ -43,6 +43,11 @@ class GitHubHandler implements HandlerInterface
      * @var string
      */
     private $command;
+
+    /**
+     * @var string
+     */
+    private $extra;
 
     /**
      * @var string[]
@@ -73,7 +78,7 @@ class GitHubHandler implements HandlerInterface
     public function getInformation(SlackIncomingWebHook $slackIncomingWebHook): array
     {
         $message = [
-            'check - Make basic repository checks to all repositories',
+            'check-org [organization] - Make basic repository checks to all repositories',
         ];
 
         return [
@@ -91,10 +96,11 @@ class GitHubHandler implements HandlerInterface
      */
     public function supports(SlackIncomingWebHook $slackIncomingWebHook): bool
     {
-        preg_match('#^github (\w+)#u', $slackIncomingWebHook->getUserText(), $matches);
+        preg_match('#^github ([a-z\-]+)\s?([a-z\-_]+)?#ui', $slackIncomingWebHook->getUserText(), $matches);
 
         if (\is_array($matches) && isset($matches[1]) && \in_array($matches[1], $this->commands, true)) {
             $this->command = $matches[1];
+            $this->extra = $matches[2] ?? 'protacon';
         }
 
         return $this->command !== null;
@@ -137,12 +143,12 @@ class GitHubHandler implements HandlerInterface
 
         $repositoryMeta = [];
 
-        $repositories = $this->gitHub->getRepositoriesOrganization('protacon');
+        $repositories = $this->gitHub->getRepositoriesOrganization($this->extra);
         $repositoryCount = \count($repositories);
         $repositories = $repositories->filter($this->repositoryFilter($repositoryMeta));
 
         $attachment = new Attachment();
-        $attachment->setFooter('Please inform those repository owners / coders about this "problem"');
+        $attachment->setFooter('Please inform those repository owners / coders about this "problem" - _current rate limit: ' . $this->gitHub->getRemainingRateLimit() . '_');
 
         $this->createAttachmentFields($attachment, $repositoryMeta, $repositories);
 
