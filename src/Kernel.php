@@ -2,19 +2,17 @@
 /**
  * /src/Kernel.php
  *
- * @author TLe, Tarmo Leppänen <tarmo.leppanen@protacon.com>
+ * @author  TLe, Tarmo Leppänen <tarmo.leppanen@protacon.com>
  */
 declare(strict_types=1);
 
 namespace App;
 
-use App\Handler\HandlerInterface;
-use App\Service\IncomingMessageHandler;
+use App\DependencyInjection\Compiler\HandlerPass;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 use Symfony\Component\Routing\RouteCollectionBuilder;
@@ -23,7 +21,7 @@ use Symfony\Component\Routing\RouteCollectionBuilder;
  * Class Kernel
  *
  * @package App
- * @author TLe, Tarmo Leppänen <tarmo.leppanen@protacon.com>
+ * @author  TLe, Tarmo Leppänen <tarmo.leppanen@protacon.com>
  */
 class Kernel extends BaseKernel implements CompilerPassInterface
 {
@@ -83,7 +81,7 @@ class Kernel extends BaseKernel implements CompilerPassInterface
     {
         parent::build($container);
 
-        $container->registerForAutoconfiguration(HandlerInterface::class)->addTag(HandlerInterface::class);
+        $container->addCompilerPass(new HandlerPass());
     }
 
     /**
@@ -96,11 +94,6 @@ class Kernel extends BaseKernel implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container): void
     {
-        $collection = $container->getDefinition(IncomingMessageHandler::class);
-
-        foreach ($container->findTaggedServiceIds(HandlerInterface::class) as $id => $tags) {
-            $collection->addMethodCall('set', [new Reference($id)]);
-        }
     }
 
     /**
